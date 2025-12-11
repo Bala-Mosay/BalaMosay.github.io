@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bala Mosay - 3D Interactive Portfolio</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            overflow: hidden;
+            background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+            color: #fff;
+        }
+
+        #canvas {
+            display: block;
+            width: 100%;
+            height: 100vh;
+        }
+
+        .ui-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 10;
+        }
+
+        .header {
+            position: absolute;
+            top: 40px;
+            left: 50%;
+            transform: translateX(-50%);
+            text-align: center;
+            pointer-events: auto;
+            z-index: 20;
+        }
+
+        .header h1 {
+            font-size: 3.5em;
+            font-weight: 700;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 10px;
+            animation: floatTitle 3s ease-in-out infinite;
+        }
+
+        .header p {
+            font-size: 1.2em;
+            color: #aaa;
+            font-weight: 300;
+            letter-spacing: 2px;
+        }
+
+        @keyframes floatTitle {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .sliding-windows {
+            position: absolute;
+            bottom: 40px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 30px;
+            pointer-events: auto;
+        }
+
+        .window-card {
+            width: 250px;
+            height: 300px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 2px solid rgba(102, 126, 234, 0.3);
+            border-radius: 15px;
+            padding: 25px;
+            backdrop-filter: blur(10px);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            overflow: hidden;
+            position: relative;
+            transform: translateY(20px);
+            opacity: 0;
+            animation: slideInWindow 0.6s ease forwards;
+        }
+
+        .window-card:nth-child(1) { animation-delay: 0.2s; }
+        .window-card:nth-child(2) { animation-delay: 0.4s; }
+        .window-card:nth-child(3) { animation-delay: 0.6s; }
+        .window-card:nth-child(4) { animation-delay: 0.8s; }
+
+        @keyframes slideInWindow {
+            from {
+                transform: translateY(20px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .window-card:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: rgba(102, 126, 234, 0.6);
+            transform: translateY(-10px);
+            box-shadow: 0 20px 40px rgba(102, 126, 234, 0.2);
+        }
+
+        .window-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s ease;
+        }
+
+        .window-card:hover::before {
+            left: 100%;
+        }
+
+        .window-icon {
+            font-size: 2.5em;
+            margin-bottom: 15px;
+            display: inline-block;
+        }
+
+        .window-title {
+            font-size: 1.3em;
+            font-weight: 600;
+            margin-bottom: 12px;
+            color: #667eea;
+        }
+
+        .window-description {
+            font-size: 0.95em;
+            color: #bbb;
+            line-height: 1.6;
+        }
+
+        .controls {
+            position: absolute;
+            top: 40px;
+            right: 40px;
+            display: flex;
+            gap: 15px;
+            pointer-events: auto;
+            z-index: 20;
+        }
+
+        .control-btn {
+            width: 50px;
+            height: 50px;
+            background: rgba(102, 126, 234, 0.2);
+            border: 2px solid rgba(102, 126, 234, 0.5);
+            border-radius: 10px;
+            color: #667eea;
+            cursor: pointer;
+            font-size: 1.2em;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .control-btn:hover {
+            background: rgba(102, 126, 234, 0.4);
+            border-color: rgba(102, 126, 234, 0.8);
+            transform: scale(1.1);
+        }
+
+        .stats {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.3);
+            padding: 15px 25px;
+            border-radius: 10px;
+            font-size: 0.85em;
+            color: #aaa;
+            pointer-events: auto;
+        }
+
+        .info-text {
+            position: absolute;
+            top: 50%;
+            left: 40px;
+            transform: translateY(-50%);
+            max-width: 300px;
+            pointer-events: auto;
+        }
+
+        .info-text h2 {
+            font-size: 1.8em;
+            margin-bottom: 15px;
+            color: #667eea;
+        }
+
+        .info-text p {
+            font-size: 1em;
+            line-height: 1.8;
+            color: #ccc;
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2.5em;
+            }
+
+            .sliding-windows {
+                bottom: 20px;
+                gap: 15px;
+                flex-wrap: wrap;
+                justify-content: center;
+                max-width: 90%;
+            }
+
+            .window-card {
+                width: 200px;
+                height: 250px;
+                padding: 20px;
+            }
+
+            .info-text {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <canvas id="canvas"></canvas>
+    
+    <div class="ui-container">
+        <div class="header">
+            <h1>BALA MOSAY</h1>
+            <p>3D INTERACTIVE PORTFOLIO</p>
+        </div>
+
+        <div class="info-text">
+            <h2>Welcome</h2>
+            <p>Explore my interactive 3D portfolio. Click on the cards below to learn more about my work and skills. Use your mouse to rotate the 3D scene.</p>
+        </div>
+
+        <div class="controls">
+            <button class="control-btn" id="rotateBtn" title="Toggle Rotation">⟳</button>
+            <button class="control-btn" id="fullscreenBtn" title="Fullscreen">⛶</button>
+        </div>
+
+        <div class="sliding-windows">
+            <div class="window-card">
+                <div class="window-icon">💻</div>
+                <div class="window-title">Web Development</div>
+                <div class="window-description">Creating modern, responsive web applications with cutting-edge technologies and best practices.</div>
+            </div>
+            <div class="window-card">
+                <div class="window-icon">🎨</div>
+                <div class="window-title">UI/UX Design</div>
+                <div class="window-description">Designing beautiful and intuitive user interfaces with a focus on user experience and accessibility.</div>
+            </div>
+            <div class="window-card">
+                <div class="window-icon">🚀</div>
+                <div class="window-title">3D Graphics</div>
+                <div class="window-description">Building immersive 3D experiences using Three.js and WebGL technologies for interactive web content.</div>
+            </div>
+            <div class="window-card">
+                <div class="window-icon">⚡</div>
+                <div class="window-title">Performance</div>
+                <div class="window-description">Optimizing applications for speed and efficiency, ensuring smooth user experiences across all devices.</div>
+            </div>
+        </div>
+
+        <div class="stats">
+            <div>FPS: <span id="fps">60</span></div>
+            <div>Objects: <span id="objectCount">0</span></div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script>
+        // Scene Setup
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer({ canvas: document.getElementById('canvas'), antialias: true, alpha: true });
+        
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(window.devicePixelRatio);
+        renderer.setClearColor(0x0f0c29, 0.1);
+        camera.position.z = 8;
+
+        // Lighting
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+        scene.add(ambientLight);
+
+        const pointLight1 = new THREE.PointLight(0x667eea, 1, 100);
+        pointLight1.position.set(5, 10, 7);
+        scene.add(pointLight1);
+
+        const pointLight2 = new THREE.PointLight(0x764ba2, 0.8, 100);
+        pointLight2.position.set(-5, -10, 7);
+        scene.add(pointLight2);
+
+        const directionalLight = new THREE.DirectionalLight(0xffffff, 0.4);
+        directionalLight.position.set(10, 10, 10);
+        scene.add(directionalLight);
+
+        // Create 3D Objects
+        const objects = [];
+
+        // Rotating Cube
+        const cubeGeometry = new THREE.BoxGeometry(1.5, 1.5, 1.5);
+        const cubeMaterial = new THREE.MeshStandardMaterial({
+            color: 0x667eea,
+            metalness: 0.7,
+            roughness: 0.2,
+            emissive: 0x667eea,
+            emissiveIntensity: 0.3
+        });
+        const cube = new THREE.Mesh(cubeGeometry, cubeMaterial);
+        cube.position.set(-3, 0, 0);
+        scene.add(cube);
+        objects.push(cube);
+
+        // Spinning Icosahedron
+        const icoGeometry = new THREE.IcosahedronGeometry(1.2, 4);
+        const icoMaterial = new THREE.MeshStandardMaterial({
+            color: 0x764ba2,
+            metalness: 0.8,
+            roughness: 0.1,
+            emissive: 0x764ba2,
+            emissiveIntensity: 0.2
+        });
+        const icosahedron = new THREE.Mesh(icoGeometry, icoMaterial);
+        icosahedron.position.set(0, 0, 0);
+        scene.add(icosahedron);
+        objects.push(icosahedron);
+
+        // Rotating Torus
+        const torusGeometry = new THREE.TorusGeometry(1.5, 0.3, 16, 100);
+        const torusMaterial = new THREE.MeshStandardMaterial({
+            color: 0x00d4ff,
+            metalness: 0.6,
+            roughness: 0.3,
+            emissive: 0x00d4ff,
+            emissiveIntensity: 0.2
+        });
+        const torus = new THREE.Mesh(torusGeometry, torusMaterial);
+        torus.position.set(3, 0, 0);
+        scene.add(torus);
+        objects.push(torus);
+
+        // Create particles for background
+        const particleCount = 200;
+        const particleGeometry = new THREE.BufferGeometry();
+        const particlePositions = new Float32Array(particleCount * 3);
+
+        for (let i = 0; i < particleCount * 3; i += 3) {
+            particlePositions[i] = (Math.random() - 0.5) * 200;
+            particlePositions[i + 1] = (Math.random() - 0.5) * 200;
+            particlePositions[i + 2] = (Math.random() - 0.5) * 200;
+        }
+
+        particleGeometry.setAttribute('position', new THREE.BufferAttribute(particlePositions, 3));
+        const particleMaterial = new THREE.PointsMaterial({
+            color: 0x667eea,
+            size: 0.1,
+            sizeAttenuation: true,
+            transparent: true,
+            opacity: 0.4
+        });
+        const particles = new THREE.Points(particleGeometry, particleMaterial);
+        scene.add(particles);
+
+        // Animation variables
+        let isRotating = true;
+        let mouseX = 0;
+        let mouseY = 0;
+        let targetRotationX = 0;
+        let targetRotationY = 0;
+
+        // Mouse tracking
+        document.addEventListener('mousemove', (event) => {
+            mouseX = (event.clientX / window.innerWidth) * 2 - 1;
+            mouseY = -(event.clientY / window.innerHeight) * 2 + 1;
+            targetRotationY = mouseX * 0.5;
+            targetRotationX = mouseY * 0.5;
+        });
+
+        // Control buttons
+        document.getElementById('rotateBtn').addEventListener('click', () => {
+            isRotating = !isRotating;
+        });
+
+        document.getElementById('fullscreenBtn').addEventListener('click', () => {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen();
+            } else {
+                document.exitFullscreen();
+            }
+        });
+
+        // Window cards interaction
+        document.querySelectorAll('.window-card').forEach((card, index) => {
+            card.addEventListener('click', () => {
+                const rotations = [
+                    { x: Math.PI * 0.5, y: 0 },
+                    { x: 0, y: Math.PI * 0.5 },
+                    { x: Math.PI * 0.25, y: Math.PI * 0.25 },
+                    { x: -Math.PI * 0.25, y: -Math.PI * 0.25 }
+                ];
+                const target = rotations[index];
+                cube.rotation.x = target.x;
+                cube.rotation.y = target.y;
+            });
+        });
+
+        // Handle window resize
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        // FPS Counter
+        let frameCount = 0;
+        let lastTime = Date.now();
+
+        function updateFPS() {
+            const currentTime = Date.now();
+            frameCount++;
+            if (currentTime - lastTime >= 1000) {
+                document.getElementById('fps').textContent = frameCount;
+                frameCount = 0;
+                lastTime = currentTime;
+            }
+        }
+
+        // Animation Loop
+        function animate() {
+            requestAnimationFrame(animate);
+
+            // Update object counts
+            document.getElementById('objectCount').textContent = scene.children.length;
+
+            // Rotation animation
+            if (isRotating) {
+                cube.rotation.x += 0.01;
+                cube.rotation.y += 0.015;
+                icosahedron.rotation.x -= 0.008;
+                icosahedron.rotation.y -= 0.012;
+                torus.rotation.x += 0.005;
+                torus.rotation.z += 0.01;
+            }
+
+            // Mouse-controlled rotation
+            cube.rotation.x += (targetRotationX - cube.rotation.x) * 0.05;
+            cube.rotation.y += (targetRotationY - cube.rotation.y) * 0.05;
+
+            // Particle animation
+            particles.rotation.x += 0.0001;
+            particles.rotation.y += 0.0002;
+
+            // Animate objects up and down
+            for (let i = 0; i < objects.length; i++) {
+                objects[i].position.y = Math.sin(Date.now() * 0.0005 + i) * 0.5;
+            }
+
+            // Render
+            renderer.render(scene, camera);
+            updateFPS();
+        }
+
+        animate();
+    </script>
+</body>
+</html>
